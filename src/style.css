@@ -11,6 +11,31 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  --bg1: #1b1925;
+  --bg2: #2B2539;
+  --bg2mute: #251E33;
+  --bg3: #423E59;
+  --bg4mute: #51515E;
+  --bg4: #7A798A;
+  --currAccent: var(--yellow);
+  --nextAccent: var(--pink);
+  --currSelection: black;
+--aqua: #17ffe2;
+  --purple: #6817ff;
+  --yellow: #edff0f;
+  --pink: #ff0fe7;
+
+}
+
+img {
+  image-rendering: pixelated;
+  user-select: none;
+}
+
+html {
+  overflow: hidden;
 }
 
 a {
@@ -22,12 +47,40 @@ a:hover {
   color: #535bf2;
 }
 
+.color-a {
+  color: var(--aqua);
+}
+
+.color-m {
+  color: var(--pink);
+}
+
+.color-p {
+  color: var(--purple);
+}
+
+.color-y {
+  color: var(--yellow);
+}
+
 body {
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  user-select: none;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 h1 {
@@ -54,16 +107,22 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+::selection {
+  color: var(--currSelection);
+  background: var(--currAccent);
+}
+
+code {
+  background-color: #1a1a1a;
+  padding: 2px 4px;
+  margin: 0 4px;
+  border-radius: 4px;
+}
+
 .card {
   padding: 2em;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -74,6 +133,9 @@ button:focus-visible {
     color: #747bff;
   }
   button {
+    background-color: #f9f9f9;
+  }
+  code {
     background-color: #f9f9f9;
   }
 }

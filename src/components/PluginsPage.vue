@@ -4,12 +4,12 @@
       <div class="title__plugins">Plugins</div>
       <div class="info__plugin-num">{{ generators.length }} generators, {{ effects.length }} effects</div>
     </div>
-
-    <PluginListTile :plugins="generators" name="Generators" :probabilities="generatorProbabilities" :update-plugin-value="updateGeneratorPluginValue"/>
-    <PluginListTile :plugins="effects" name="Effects" :probabilities="effectProbabilities" :update-plugin-value="updateEffectsPluginValue"/>
+    <input type="file" id="file" ref="file" style="display: none"/>
+    <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue" @download="downloadGenerators" @upload="uploadGenerators"/>
+    <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue" @download="downloadEffects" @upload="uploadEffects"/>
     <div class="container__reroll-overlay">
       <div class="container__reroll-box">
-        <div class="container__rolled-plugins" v-if="pluginCombo || isInDelay">
+        <div class="container__rolled-plugins" :class="{hide: !(pluginCombo || isInDelay)}">
           <v-icon icon="mdi-close" class="icon__rolled-plugins" @click="clearCombo"/>
           <div class="container__dice" v-if="isInDelay">
             <img src="/dice2.gif" alt="dice" class="img__reroll"/>
@@ -17,7 +17,7 @@
           <div class="info__rolled" v-else v-html="pluginCombo">
           </div>
         </div>
-        <div class="container__reroll-config" :class="{round: !pluginCombo}">
+        <div class="container__reroll-config" :class="{round: !(pluginCombo || isInDelay)}">
           <div class="row__reroll-config">
             <div class="container__generator-num">
               <div class="info__reroll-config" :class="{selected: isNumGenerator(0)}" @click="setGeneratorNum(0)">0
@@ -50,63 +50,50 @@
 
 <script>
 import PluginListTile from "./PluginListTile.vue";
+import {mapState} from "vuex";
 
 export default {
   name: "PluginsPage",
   components: {PluginListTile},
   data() {
     return {
-      effects: [
-        "chipcrusher",
-        "FabFilter Pro-Q 3",
-        "FabFilter Pro-R",
-        "Gullfoss",
-        "iZotope Ozone 9",
-        "iZotope Neutron 3",
-        "iZotope Nectar 3",
-        "iZotope RX 10 Elements",
-        "iZotope Trash 2",
-        "iZotope VocalSynth 2",
-      ],
-      generators: [
-        "Phase Plant",
-        "Serum",
-        "Spire",
-        "Sylenth1",
-        "Vital",
-        "Synthmaster Player",
-        "FLEX",
-        "Harmor",
-      ],
+      // effects: [
+      //   "chipcrusher",
+      //   "FabFilter Pro-Q 3",
+      //   "FabFilter Pro-R",
+      //   "Gullfoss",
+      //   "iZotope Ozone 9",
+      //   "iZotope Neutron 3",
+      //   "iZotope Nectar 3",
+      //   "iZotope RX 10 Elements",
+      //   "iZotope Trash 2",
+      //   "iZotope VocalSynth 2",
+      // ],
+      // generators: [
+      //   "Phase Plant",
+      //   "Serum",
+      //   "Spire",
+      //   "Sylenth1",
+      //   "Vital",
+      //   "Synthmaster Player",
+      //   "FLEX",
+      //   "Harmor",
+      // ],
       numEffect: 1,
       numGenerator: 0,
       pluginCombo: "",
-      generatorProbabilities: {},
-      effectProbabilities: {},
+      // generatorProbabilities: {},
+      // effectProbabilities: {},
       rerollDelayTimeout: null,
       isInDelay: false
     }
   },
-  created() {
-    this.initializeProbabilities();
+  computed: {
+    ...mapState(['generators', 'effects'])
   },
   methods: {
     clearCombo() {
       this.pluginCombo = "";
-    },
-    initializeProbabilities() {
-      this.generators.forEach((generator) => {
-        this.generatorProbabilities[generator] = 0.5;
-      });
-      this.effects.forEach((effect) => {
-        this.effectProbabilities[effect] = 0.5;
-      });
-    },
-    updateEffectsPluginValue(val, plugin) {
-      this.effectProbabilities[plugin] = val;
-    },
-    updateGeneratorPluginValue(val, plugin) {
-      this.generatorProbabilities[plugin] = val;
     },
     setEffectNum(val) {
       this.numEffect = val;
@@ -119,6 +106,14 @@ export default {
       if (this.numEffect === 0 && this.numGenerator === 0) {
         this.numEffect = 1;
       }
+    },
+    updateGeneratorPluginValue(val, plugin) {
+      console.log(val, plugin)
+      this.$store.commit("updateGeneratorWeight", {name: plugin, weight: val});
+    },
+    updateEffectsPluginValue(val, plugin) {
+      console.log(val, plugin)
+      this.$store.commit("updateEffectWeight", {name: plugin, weight: val});
     },
     isNumEffect(val) {
       return this.numEffect === val;
@@ -145,17 +140,16 @@ export default {
       }, 500);
     },
     rollPluginCombo() {
-      let generators = this.generators.slice();
-      let effects = this.effects.slice();
-      console.log("probability map", this.generatorProbabilities)
+      let generators = JSON.parse(JSON.stringify(this.generators));
+      let effects = JSON.parse(JSON.stringify(this.effects));
 
       let pluginCombo = "";
       for (let i = 0; i < this.numGenerator; i++) {
         // let randIndex = Math.floor(Math.random() * generators.length);
         // use probabilities instead. this is a weighted random with each weight being from 0 to 1
         pluginCombo += "<span style='color: var(--currAccent)'>"
-        let randIndex = this.weightedProbability(this.generatorProbabilities, generators);
-        pluginCombo += generators[randIndex];
+        let randIndex = this.weightedProbability(generators);
+        pluginCombo += generators[randIndex].name;
         pluginCombo += "</span>"
         generators.splice(randIndex, 1);
         if (i < this.numGenerator - 1 || this.numEffect > 0) {
@@ -164,8 +158,12 @@ export default {
       }
 
       for (let i = 0; i < this.numEffect; i++) {
-        let randIndex = this.weightedProbability(this.effectProbabilities, effects);
-        pluginCombo += effects[randIndex];
+        if (!effects || effects.length === 0) {
+          break;
+        }
+        console.log(effects)
+        let randIndex = this.weightedProbability(effects);
+        pluginCombo += effects[randIndex].name;
         effects.splice(randIndex, 1);
         if (i < this.numEffect - 1) {
           pluginCombo += " + ";
@@ -174,13 +172,13 @@ export default {
 
       this.pluginCombo = pluginCombo;
     },
-    weightedProbability(probabilityMap, items) {
+    weightedProbability(items) {
       // items is an array of strings that are the keys of the probabilityMap
       // return the index of the item that was chosen
 
       let sum = 0;
       for (let i = 0; i < items.length; i++) {
-        sum += probabilityMap[items[i]];
+        sum += items[i].weight;
       }
 
       if (sum === 0) {
@@ -191,13 +189,35 @@ export default {
 
       let runningSum = 0;
       for (let i = 0; i < items.length; i++) {
-        runningSum += probabilityMap[items[i]];
+        runningSum += items[i].weight;
         if (rand < runningSum) {
           return i;
         }
       }
 
       return items.length - 1;
+    },
+    downloadGenerators() {
+      this.$store.dispatch("downloadGenerators");
+    },
+    uploadGenerators() {
+      this.$refs.file.click();
+
+      this.$refs.file.addEventListener("change", (e) => {
+        let file = e.target.files[0];
+        this.$store.dispatch("loadGeneratorsFromFile", file);
+      });
+    },
+    downloadEffects() {
+      this.$store.dispatch("downloadEffects");
+    },
+    uploadEffects() {
+      this.$refs.file.click();
+
+      this.$refs.file.addEventListener("change", (e) => {
+        let file = e.target.files[0];
+        this.$store.dispatch("loadEffectsFromFile", file);
+      });
     }
   }
 }
@@ -256,12 +276,9 @@ export default {
 }
 
 .container__reroll-overlay {
-  position: fixed;
+  margin-top: 10px;
   display: flex;
   flex-direction: column-reverse;
-  width: 276px;
-  top: 85px;
-  height: 348px;
   border-radius: 5px;
   pointer-events: none;
 }
@@ -344,6 +361,11 @@ export default {
   border-top-right-radius: 5px;
   border-bottom: none;
   min-height: 50px;
+  height: 58px;
+}
+
+.container__rolled-plugins.hide {
+  opacity: 0;
 }
 
 .info__rolled {
@@ -363,7 +385,8 @@ export default {
 }
 
 .page__plugins {
-  padding-bottom: 200px;
+  width: 800px;
+  height: 100%;
 }
 
 .container__dice {

@@ -3,15 +3,22 @@
     <div class="container__plugin-list-tile">
       <div class="row__plugin-list-tile">
         <div class="left__plugin-list-tile">
-          <v-icon :icon="isExpanded ? 'mdi-menu-down' : 'mdi-menu-right'" class="icon__plugin-list-tile" @click="toggleExpanded"></v-icon>
+          <v-icon :icon="isExpanded ? 'mdi-menu-down' : 'mdi-menu-right'" class="icon__plugin-list-tile"
+                  @click="toggleExpanded"></v-icon>
           <div class="title__plugin-list-tile">{{ name }}</div>
         </div>
         <div class="right__plugin-list-tile">
-          <div class="info__edit-list">Edit List</div>
-          <v-icon icon="mdi-pencil" class="icon__plugin-list-tile-right"></v-icon>
+          <div class="flex__item" @click="download">
+            <div class="info__edit-list">Download List</div>
+            <v-icon icon="mdi-download" class="icon__plugin-list-tile-right"></v-icon>
+          </div>
+          <div class="flex__item" @click="upload">
+            <div class="info__edit-list">Replace List</div>
+            <v-icon icon="mdi-upload" class="icon__plugin-list-tile-right"></v-icon>
+          </div>
         </div>
       </div>
-      <PluginTable v-if="isExpanded" :plugins="plugins" :probabilities="probabilities" :update-plugin-value="updatePluginValue"/>
+      <PluginTable v-if="isExpanded" :plugins="plugins" :update-plugin-value="updatePluginValue"/>
     </div>
   </div>
 </template>
@@ -31,11 +38,8 @@ export default {
       type: String,
       default: ""
     },
-    probabilities: {
-      type: Object,
-      default: () => {}
-    },
   },
+  emits: ['download', 'upload'],
   data() {
     return {
       isExpanded: false
@@ -44,6 +48,12 @@ export default {
   methods: {
     toggleExpanded() {
       this.isExpanded = !this.isExpanded;
+    },
+    download() {
+      this.$emit('download');
+    },
+    upload() {
+      this.$emit('upload');
     }
   }
 }
@@ -72,7 +82,7 @@ export default {
 
 .info__edit-list {
   font-size: 0.75rem;
-  margin-right: 10px;
+  margin-right: 5px;
   color: var(--currAccent);
 }
 
@@ -90,9 +100,13 @@ export default {
 }
 
 .icon__plugin-list-tile-right {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   color: var(--currAccent);
   margin-right: 12px;
 }
 
+.flex__item {
+  display: flex;
+  cursor: pointer;
+}
 </style>

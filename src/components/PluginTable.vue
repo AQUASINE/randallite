@@ -16,7 +16,7 @@
       </tr>
       </thead>
       <tbody>
-      <PluginTableRow v-for="plugin in plugins" :value="getProbability(plugin)" :name="plugin" @update="update"/>
+      <PluginTableRow v-for="plugin in plugins" :value="getProbability(plugin)" :name="plugin.name" @update="update"/>
       </tbody>
     </table>
   </div>
@@ -31,19 +31,13 @@ export default {
   props: {
     plugins: {},
     updatePluginValue: {},
-    probabilities: {
-      type: Object,
-      default: () => {}
-    },
   },
   methods: {
     getProbability(plugin) {
-      if (!this.probabilities.hasOwnProperty(plugin)) {
-        return 0.5;
-      }
-      return this.probabilities[plugin];
+      return plugin.weight;
     },
     update(val, plugin) {
+      console.log("update")
       this.updatePluginValue(val, plugin);
     }
   }

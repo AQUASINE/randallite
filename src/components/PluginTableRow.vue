@@ -27,7 +27,7 @@ export default {
   emits: ['update'],
   computed: {
     formattedName() {
-      if (this.name.length > 15) {
+      if (this.name.length > 40) {
         // put ellipsis in the middle of the name
         return this.name.slice(0, 5) + '...' + this.name.slice(-8);
       }
