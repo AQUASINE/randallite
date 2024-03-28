@@ -37,7 +37,6 @@ export default {
       return plugin.weight;
     },
     update(val, plugin) {
-      console.log("update")
       this.updatePluginValue(val, plugin);
     }
   }

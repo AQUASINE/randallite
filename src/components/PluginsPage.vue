@@ -79,8 +79,6 @@ export default {
       //   "FLEX",
       //   "Harmor",
       // ],
-      numEffect: 1,
-      numGenerator: 0,
       pluginCombo: "",
       // generatorProbabilities: {},
       // effectProbabilities: {},
@@ -89,37 +87,35 @@ export default {
     }
   },
   computed: {
-    ...mapState(['generators', 'effects'])
+    ...mapState(['generators', 'effects', 'numGenerators', 'numEffects'])
   },
   methods: {
     clearCombo() {
       this.pluginCombo = "";
     },
     setEffectNum(val) {
-      this.numEffect = val;
-      if (this.numEffect === 0 && this.numGenerator === 0) {
-        this.numGenerator = 1;
+      this.$store.commit("setNumEffects", val)
+      if (val === 0 && this.numGenerators === 0) {
+        this.$store.commit("setNumGenerators", 1)
       }
     },
     setGeneratorNum(val) {
-      this.numGenerator = val;
-      if (this.numEffect === 0 && this.numGenerator === 0) {
-        this.numEffect = 1;
+      this.$store.commit("setNumGenerators", val);
+      if (val === 0 && this.numEffects === 0) {
+        this.$store.commit("setNumEffects", 1)
       }
     },
     updateGeneratorPluginValue(val, plugin) {
-      console.log(val, plugin)
       this.$store.commit("updateGeneratorWeight", {name: plugin, weight: val});
     },
     updateEffectsPluginValue(val, plugin) {
-      console.log(val, plugin)
       this.$store.commit("updateEffectWeight", {name: plugin, weight: val});
     },
     isNumEffect(val) {
-      return this.numEffect === val;
+      return this.numEffects === val;
     },
     isNumGenerator(val) {
-      return this.numGenerator === val;
+      return this.numGenerators === val;
     },
     reroll() {
       let audio = new Audio("/ffft.wav");
@@ -144,7 +140,7 @@ export default {
       let effects = JSON.parse(JSON.stringify(this.effects));
 
       let pluginCombo = "";
-      for (let i = 0; i < this.numGenerator; i++) {
+      for (let i = 0; i < this.numGenerators; i++) {
         // let randIndex = Math.floor(Math.random() * generators.length);
         // use probabilities instead. this is a weighted random with each weight being from 0 to 1
         pluginCombo += "<span style='color: var(--currAccent)'>"
@@ -152,20 +148,18 @@ export default {
         pluginCombo += generators[randIndex].name;
         pluginCombo += "</span>"
         generators.splice(randIndex, 1);
-        if (i < this.numGenerator - 1 || this.numEffect > 0) {
+        if (i < this.numGenerators - 1 || this.numEffects > 0) {
           pluginCombo += " + ";
         }
       }
 
-      for (let i = 0; i < this.numEffect; i++) {
+      for (let i = 0; i < this.numEffects; i++) {
         if (!effects || effects.length === 0) {
           break;
         }
-        console.log(effects)
         let randIndex = this.weightedProbability(effects);
         pluginCombo += effects[randIndex].name;
-        effects.splice(randIndex, 1);
-        if (i < this.numEffect - 1) {
+        if (i < this.numEffects - 1) {
           pluginCombo += " + ";
         }
       }
@@ -179,6 +173,7 @@ export default {
       let sum = 0;
       for (let i = 0; i < items.length; i++) {
         sum += items[i].weight;
+        console.log(items[i].name, items[i].weight)
       }
 
       if (sum === 0) {
