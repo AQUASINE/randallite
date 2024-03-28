@@ -51,6 +51,9 @@ const store = createStore({
                 const filteredGenerators = generators.filter(node => node.name);
                 commit("setGenerators", filteredGenerators);
             };
+            store.dispatch("saveToLocalStorage").then(() => {
+                console.log("Saved to local storage");
+            });
         },
         async loadEffectsFromFile({commit}, file) {
             // user uploads a csv file with effect data. it will be of the form
@@ -69,6 +72,9 @@ const store = createStore({
                 const filteredEffects = effects.filter(node => node.name);
                 commit("setEffects", filteredEffects);
             };
+            store.dispatch("saveToLocalStorage").then(() => {
+                console.log("Saved to local storage");
+            });
         },
         async downloadGenerators({state}) {
             const csvContent = state.generators.map(generator => `${generator.name}, ${generator.weight}`).join("\n");
@@ -87,8 +93,24 @@ const store = createStore({
             a.href = url;
             a.download = "effects-" + Date.now() + ".csv";
             a.click();
+        },
+        async saveToLocalStorage({state}) {
+            localStorage.setItem("generators", JSON.stringify(state.generators));
+            localStorage.setItem("effects", JSON.stringify(state.effects));
+        },
+        async loadFromLocalStorage({commit}) {
+            const generators = JSON.parse(localStorage.getItem("generators")) || [];
+            const effects = JSON.parse(localStorage.getItem("effects")) || [];
+            commit("setGenerators", generators);
+            commit("setEffects", effects);
         }
     }
 });
+
+setInterval(() => {
+    store.dispatch("saveToLocalStorage").then(() => {
+        console.log("Saved to local storage");
+    });
+}, 2000);
 
 export default store;
