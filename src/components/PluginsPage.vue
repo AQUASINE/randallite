@@ -5,8 +5,27 @@
       <div class="info__plugin-num">{{ generators.length }} generators, {{ effects.length }} effects</div>
     </div>
     <input type="file" id="file" ref="file" style="display: none"/>
-    <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue" @download="downloadGenerators" @upload="uploadGenerators"/>
-    <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue" @download="downloadEffects" @upload="uploadEffects"/>
+    <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue"
+                    @download="downloadGenerators" @upload="uploadGenerators"/>
+    <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue"
+                    @download="downloadEffects" @upload="uploadEffects"/>
+    <div class="container__recent-rows" v-if="pluginCombo">
+      <h3 class="header__adjust">Adjust</h3>
+      <table class="table__recent-rows">
+        <thead>
+        <tr>
+          <th class="table__col-left"></th>
+          <th class="table__col-right">
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <PluginTableRow v-if="selectedGenerator && selectedGenerator.name" :name="selectedGenerator.name" :key="selectedGenerator.name"
+                        :value="selectedGenerator.value" @update="updateGeneratorPluginValue"/>
+        <PluginTableRow v-for="effect in selectedEffects" :name="effect.name" :value="effect.value" :key="effect.name" @update="updateEffectsPluginValue"/>
+        </tbody>
+      </table>
+    </div>
     <div class="container__reroll-overlay">
       <div class="container__reroll-box">
         <div class="container__rolled-plugins" :class="{hide: !(pluginCombo || isInDelay)}">
@@ -51,10 +70,11 @@
 <script>
 import PluginListTile from "./PluginListTile.vue";
 import {mapState} from "vuex";
+import PluginTableRow from "./PluginTableRow.vue";
 
 export default {
   name: "PluginsPage",
-  components: {PluginListTile},
+  components: {PluginTableRow, PluginListTile},
   data() {
     return {
       // effects: [
@@ -80,6 +100,8 @@ export default {
       //   "Harmor",
       // ],
       pluginCombo: "",
+      selectedGenerator: -1,
+      selectedEffects: [],
       // generatorProbabilities: {},
       // effectProbabilities: {},
       rerollDelayTimeout: null,
@@ -87,11 +109,13 @@ export default {
     }
   },
   computed: {
-    ...mapState(['generators', 'effects', 'numGenerators', 'numEffects'])
+    ...mapState(['generators', 'effects', 'numGenerators', 'numEffects']),
   },
   methods: {
     clearCombo() {
       this.pluginCombo = "";
+      this.selectedGenerator = null;
+      this.selectedEffects = [];
     },
     setEffectNum(val) {
       this.$store.commit("setNumEffects", val)
@@ -139,12 +163,16 @@ export default {
       let generators = JSON.parse(JSON.stringify(this.generators));
       let effects = JSON.parse(JSON.stringify(this.effects));
 
+      this.selectedGenerator = ""
+      this.selectedEffects = []
+
       let pluginCombo = "";
       for (let i = 0; i < this.numGenerators; i++) {
         // let randIndex = Math.floor(Math.random() * generators.length);
         // use probabilities instead. this is a weighted random with each weight being from 0 to 1
         pluginCombo += "<span style='color: var(--currAccent)'>"
         let randIndex = this.weightedProbability(generators);
+        this.selectedGenerator = generators[randIndex];
         pluginCombo += generators[randIndex].name;
         pluginCombo += "</span>"
         generators.splice(randIndex, 1);
@@ -158,6 +186,9 @@ export default {
           break;
         }
         let randIndex = this.weightedProbability(effects);
+        if (!this.selectedEffects.find(effect => effect.name === effects[randIndex].name)) {
+          this.selectedEffects.push(effects[randIndex]);
+        }
         pluginCombo += effects[randIndex].name;
         if (i < this.numEffects - 1) {
           pluginCombo += " + ";
@@ -392,5 +423,45 @@ export default {
   width: 100%;
   margin-bottom: 4px;
   margin-top: -15px;
+}
+
+.table__col-left {
+  flex: 1 0 auto;
+  border-bottom: 1px solid var(--bg3);
+  border-right: 1px solid var(--bg3);
+  padding: 3px 0px;
+  width: 40%;
+  font-size: 0.8rem;
+  color: var(--currAccent);
+  font-weight: normal;
+  text-align: left;
+}
+
+.table__col-right {
+  flex: 1 0 auto;
+  border-bottom: 1px solid var(--bg3);
+  padding: 5px 6px;
+  font-size: 0.8rem;
+  color: var(--currAccent);
+  font-weight: normal;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.container__recent-rows {
+  width: 100%;
+}
+
+.table__recent-rows {
+  width: 100%;
+}
+
+.header__adjust {
+  width: 100%;
+  text-align: left;
+  margin-top: 1rem;
+  color: var(--currAccent);
 }
 </style>

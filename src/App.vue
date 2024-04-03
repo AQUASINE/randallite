@@ -16,7 +16,6 @@ import PluginsPage from "./components/PluginsPage.vue";
   width: 100vw;
   justify-content: center;
   align-items: center;
-
   background-color: var(--bg1);
   color: white;
   text-align: center;
