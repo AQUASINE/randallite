@@ -4,7 +4,8 @@
       <div class="title__plugins">Plugins</div>
       <div class="info__plugin-num">{{ generators.length }} generators, {{ effects.length }} effects</div>
     </div>
-    <input type="file" id="file" ref="file" style="display: none"/>
+    <input type="file" id="generatorFile" ref="generatorFile" style="display: none"/>
+    <input type="file" id="effectsFile" ref="effectsFile" style="display: none"/>
     <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue"
                     @download="downloadGenerators" @upload="uploadGenerators"/>
     <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue"
@@ -227,9 +228,9 @@ export default {
       this.$store.dispatch("downloadGenerators");
     },
     uploadGenerators() {
-      this.$refs.file.click();
+      this.$refs.generatorFile.click();
 
-      this.$refs.file.addEventListener("change", (e) => {
+      this.$refs.generatorFile.addEventListener("change", (e) => {
         let file = e.target.files[0];
         this.$store.dispatch("loadGeneratorsFromFile", file);
       });
@@ -238,9 +239,9 @@ export default {
       this.$store.dispatch("downloadEffects");
     },
     uploadEffects() {
-      this.$refs.file.click();
+      this.$refs.effectsFile.click();
 
-      this.$refs.file.addEventListener("change", (e) => {
+      this.$refs.effectsFile.addEventListener("change", (e) => {
         let file = e.target.files[0];
         this.$store.dispatch("loadEffectsFromFile", file);
       });

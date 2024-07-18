@@ -51,12 +51,21 @@ const store = createStore({
             reader.onload = () => {
                 const generators = reader.result.split("\n").map(line => {
                     const [name, weight] = line.split(",");
+
+                    // if weight is not provided, check if it was in the previous list
+                    // and retain its weight
+                    const previousGenerator = this.state.generators.find(generator => generator.name === name.trim());
+                    if (!weight && previousGenerator) {
+                        return previousGenerator;
+                    }
+
                     return {
                         name: name.trim(),
                         weight: weight ? parseFloat(weight) : 0.5
                     };
                 });
                 const filteredGenerators = generators.filter(node => node.name);
+
                 commit("setGenerators", filteredGenerators);
             };
             store.dispatch("saveToLocalStorage").then(() => {
