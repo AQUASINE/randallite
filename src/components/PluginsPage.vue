@@ -205,7 +205,6 @@ export default {
       let sum = 0;
       for (let i = 0; i < items.length; i++) {
         sum += items[i].weight;
-        console.log(items[i].name, items[i].weight)
       }
 
       if (sum === 0) {

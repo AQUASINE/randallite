@@ -5,7 +5,9 @@ const store = createStore({
         generators: [],
         effects: [],
         numGenerators: 0,
-        numEffects: 0
+        numEffects: 0,
+        maxPoints: 100,
+        websocket: null
     },
     mutations: {
         addGenerator(state, generator) {
@@ -39,9 +41,68 @@ const store = createStore({
         },
         setNumEffects(state, numEffects) {
             state.numEffects = numEffects;
+        },
+        setMaxPoints(state, maxPoints) {
+            state.maxPoints = maxPoints
+        },
+        setWebSocket(state, websocket) {
+            state.websocket = websocket;
         }
     },
     actions: {
+        async connectWebSocket({ commit, dispatch }) {
+            const socket = new WebSocket("ws://localhost:8765");
+
+            socket.onopen = () => {
+                console.log("WebSocket connected.");
+                commit("setWebSocket", socket);
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const pluginData = JSON.parse(event.data);
+                    if (pluginData["Effects.csv"]) {
+                        dispatch("loadEffectsFromCSV", pluginData["Effects.csv"]);
+                    }
+                    if (pluginData["Generators.csv"]) {
+                        dispatch("loadGeneratorsFromCSV", pluginData["Generators.csv"]);
+                    }
+                } catch (error) {
+                    console.error("Error parsing WebSocket message:", error);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+
+            socket.onclose = () => {
+                console.warn("WebSocket closed. Reconnecting in 5 seconds...");
+                setTimeout(() => {
+                    dispatch("connectWebSocket");
+                }, 5000);
+            };
+        },
+        async loadGeneratorsFromCSV({commit}, csv) {
+            const generators = csv.split("\n").map(line => {
+                const [name, weight] = line.split(",");
+
+                // if weight is not provided, check if it was in the previous list
+                // and retain its weight
+                const previousGenerator = this.state.generators.find(generator => generator.name === name.trim());
+                if (!weight && previousGenerator) {
+                    return previousGenerator;
+                }
+
+                return {
+                    name: name.trim(),
+                    weight: weight ? parseFloat(weight) : 0.5
+                };
+            });
+            const filteredGenerators = generators.filter(node => node.name);
+
+            commit("setGenerators", filteredGenerators);
+        },
         async loadGeneratorsFromFile({commit}, file) {
             // user uploads a csv file with generator data. it will be of the form
             // name, weight
@@ -49,24 +110,7 @@ const store = createStore({
             const reader = new FileReader();
             reader.readAsText(file);
             reader.onload = () => {
-                const generators = reader.result.split("\n").map(line => {
-                    const [name, weight] = line.split(",");
-
-                    // if weight is not provided, check if it was in the previous list
-                    // and retain its weight
-                    const previousGenerator = this.state.generators.find(generator => generator.name === name.trim());
-                    if (!weight && previousGenerator) {
-                        return previousGenerator;
-                    }
-
-                    return {
-                        name: name.trim(),
-                        weight: weight ? parseFloat(weight) : 0.5
-                    };
-                });
-                const filteredGenerators = generators.filter(node => node.name);
-
-                commit("setGenerators", filteredGenerators);
+                dispatch("loadGeneratorsFromCSV", reader.result);
             };
             store.dispatch("saveToLocalStorage").then(() => {
                 console.log("Saved to local storage");
@@ -79,19 +123,31 @@ const store = createStore({
             const reader = new FileReader();
             reader.readAsText(file);
             reader.onload = () => {
-                const effects = reader.result.split("\n").map(line => {
-                    const [name, weight] = line.split(",");
-                    return {
-                        name: name.trim(),
-                        weight: weight ? parseFloat(weight) : 0.5
-                    };
-                });
-                const filteredEffects = effects.filter(node => node.name);
-                commit("setEffects", filteredEffects);
+                dispatch("loadEffectsFromCSV", reader.result);
             };
             store.dispatch("saveToLocalStorage").then(() => {
                 console.log("Saved to local storage");
             });
+        },
+        async loadEffectsFromCSV({commit}, csv) {
+            const effects = csv.split("\n").map(line => {
+                const [name, weight] = line.split(",");
+
+                // if weight is not provided, check if it was in the previous list
+                // and retain its weight
+                const previousEffect = this.state.effects.find(effect => effect.name === name.trim());
+                if (!weight && previousEffect) {
+                    return previousEffect;
+                }
+
+                return {
+                    name: name.trim(),
+                    weight: weight ? parseFloat(weight) : 0.5
+                };
+            });
+            const filteredEffects = effects.filter(node => node.name);
+
+            commit("setEffects", filteredEffects);
         },
         async downloadGenerators({state}) {
             const csvContent = state.generators.map(generator => `${generator.name}, ${generator.weight}`).join("\n");
@@ -118,6 +174,7 @@ const store = createStore({
             localStorage.setItem("generators", JSON.stringify(state.generators));
             localStorage.setItem("effects", JSON.stringify(state.effects));
             localStorage.setItem("numGenerators", state.numGenerators);
+            localStorage.setItem("maxPoints", state.maxPoints);
             localStorage.setItem("numEffects", state.numEffects);
         },
         async loadFromLocalStorage({commit}) {
@@ -125,10 +182,16 @@ const store = createStore({
             const effects = JSON.parse(localStorage.getItem("effects")) || [];
             const numGenerators = parseInt(localStorage.getItem("numGenerators")) || 0;
             const numEffects = parseInt(localStorage.getItem("numEffects")) || 0;
+            const maxPoints = parseInt(localStorage.getItem("maxPoints")) || 100;
             commit("setGenerators", generators);
             commit("setEffects", effects);
             commit("setNumGenerators", numGenerators);
             commit("setNumEffects", numEffects);
+            commit("setMaxPoints", maxPoints);
+        },
+        async updateMaxPoints({commit}, maxPoints) {
+            commit("setMaxPoints", maxPoints);
+            localStorage.setItem("maxPoints", maxPoints);
         }
     }
 });

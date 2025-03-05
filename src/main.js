@@ -19,4 +19,5 @@ store.dispatch("loadFromLocalStorage").then(() => {
     app.use(store);
     app.use(vuetify);
     app.mount('#app');
+    store.dispatch("connectWebSocket");
 });

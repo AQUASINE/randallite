@@ -8,17 +8,25 @@
           <div class="title__plugin-list-tile">{{ name }}</div>
         </div>
         <div class="right__plugin-list-tile">
+          <div class="flex__item" @click="edit">
+            <div class="info__edit-list">Edit</div>
+            <v-icon icon="mdi-pencil" class="icon__plugin-list-tile-right"></v-icon>
+          </div>
           <div class="flex__item" @click="download">
-            <div class="info__edit-list">Download List</div>
+            <div class="info__edit-list">Download</div>
             <v-icon icon="mdi-download" class="icon__plugin-list-tile-right"></v-icon>
           </div>
           <div class="flex__item" @click="upload">
-            <div class="info__edit-list">Replace List</div>
+            <div class="info__edit-list">Replace</div>
             <v-icon icon="mdi-upload" class="icon__plugin-list-tile-right"></v-icon>
           </div>
         </div>
       </div>
-      <PluginTable v-if="isExpanded" :plugins="plugins" :update-plugin-value="updatePluginValue"/>
+      <div v-if="isEditMode">
+        <textarea v-model="pluginList" class="input__plugin-list-tile"></textarea>
+        <v-btn @click="savePluginList" class="btn__plugin-list-tile">Save</v-btn>
+      </div>
+      <PluginTable :plugins="plugins" :update-plugin-value="updatePluginValue" :class="{'pluginsCollapsed': !isExpanded}"/>
     </div>
   </div>
 </template>
@@ -42,7 +50,8 @@ export default {
   emits: ['download', 'upload'],
   data() {
     return {
-      isExpanded: false
+      isExpanded: false,
+      isEditMode: false,
     }
   },
   methods: {
@@ -54,7 +63,10 @@ export default {
     },
     upload() {
       this.$emit('upload');
-    }
+    },
+    edit() {
+      this.isEditMode = !this.isEditMode;
+    },
   }
 }
 </script>
@@ -108,5 +120,9 @@ export default {
 .flex__item {
   display: flex;
   cursor: pointer;
+}
+
+.pluginsCollapsed {
+  display: none;
 }
 </style>
