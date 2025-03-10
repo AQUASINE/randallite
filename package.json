@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "vite build && gh-pages -d dist --cname randallite.aquasine.net"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "gh-pages": "^6.1.1",
+    "gh-pages": "^6.3.0",
     "svelte": "^4.2.10",
     "tailwindcss": "^3.4.1",
     "vue": "^3.3.11",

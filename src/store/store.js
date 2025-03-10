@@ -59,13 +59,14 @@ const store = createStore({
             };
 
             socket.onmessage = (event) => {
+                print("Received message from server: ", event.data);
                 try {
                     const pluginData = JSON.parse(event.data);
                     if (pluginData["Effects.csv"]) {
-                        dispatch("loadEffectsFromCSV", pluginData["Effects.csv"]);
+                        store.dispatch("loadEffectsFromCSV", pluginData["Effects.csv"]);
                     }
                     if (pluginData["Generators.csv"]) {
-                        dispatch("loadGeneratorsFromCSV", pluginData["Generators.csv"]);
+                        store.dispatch("loadGeneratorsFromCSV", pluginData["Generators.csv"]);
                     }
                 } catch (error) {
                     console.error("Error parsing WebSocket message:", error);
@@ -79,7 +80,7 @@ const store = createStore({
             socket.onclose = () => {
                 console.warn("WebSocket closed. Reconnecting in 5 seconds...");
                 setTimeout(() => {
-                    dispatch("connectWebSocket");
+                    store.dispatch("connectWebSocket");
                 }, 5000);
             };
         },
@@ -110,7 +111,7 @@ const store = createStore({
             const reader = new FileReader();
             reader.readAsText(file);
             reader.onload = () => {
-                dispatch("loadGeneratorsFromCSV", reader.result);
+                store.dispatch("loadGeneratorsFromCSV", reader.result);
             };
             store.dispatch("saveToLocalStorage").then(() => {
                 console.log("Saved to local storage");
@@ -123,7 +124,7 @@ const store = createStore({
             const reader = new FileReader();
             reader.readAsText(file);
             reader.onload = () => {
-                dispatch("loadEffectsFromCSV", reader.result);
+                store.dispatch("loadEffectsFromCSV", reader.result);
             };
             store.dispatch("saveToLocalStorage").then(() => {
                 console.log("Saved to local storage");
