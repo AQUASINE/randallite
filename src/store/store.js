@@ -59,7 +59,7 @@ const store = createStore({
             };
 
             socket.onmessage = (event) => {
-                print("Received message from server: ", event.data);
+                console.log("Received message from server: ", event.data);
                 try {
                     const pluginData = JSON.parse(event.data);
                     if (pluginData["Effects.csv"]) {
