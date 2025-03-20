@@ -4,7 +4,7 @@
       <div class="row__plugin-list-tile">
         <div class="left__plugin-list-tile">
           <v-icon :icon="isExpanded ? 'mdi-menu-down' : 'mdi-menu-right'" class="icon__plugin-list-tile"
-                  @click="toggleExpanded"></v-icon>
+            @click="toggleExpanded"></v-icon>
           <div class="title__plugin-list-tile">{{ name }}</div>
         </div>
         <div class="right__plugin-list-tile">
@@ -23,19 +23,25 @@
         </div>
       </div>
       <div v-if="isEditMode">
-        <textarea v-model="pluginList" class="input__plugin-list-tile"></textarea>
-        <v-btn @click="savePluginList" class="btn__plugin-list-tile">Save</v-btn>
+        <div>
+          <textarea v-model="pluginList" class="input__plugin-list-tile"></textarea>
+        </div>
+        <div>
+          <v-btn @click="savePluginList" class="btn__plugin-list-tile">Save</v-btn>
+        </div>
       </div>
-      <PluginTable :plugins="plugins" :update-plugin-value="updatePluginValue" :class="{'pluginsCollapsed': !isExpanded}"/>
+      <PluginTable :plugins="plugins" :update-plugin-value="updatePluginValue"
+        :class="{ 'pluginsCollapsed': !isExpanded }" />
     </div>
   </div>
 </template>
 <script>
+import store from "../store/store";
 import PluginTable from "./PluginTable.vue"
 
 export default {
   name: 'PluginListTile',
-  components: {PluginTable},
+  components: { PluginTable },
   props: {
     updatePluginValue: {},
     plugins: {
@@ -47,7 +53,7 @@ export default {
       default: ""
     },
   },
-  emits: ['download', 'upload'],
+  emits: ['download', 'upload', 'updatedList'],
   data() {
     return {
       isExpanded: false,
@@ -66,17 +72,63 @@ export default {
     },
     edit() {
       this.isEditMode = !this.isEditMode;
+      if (this.isEditMode) {
+        let list = []
+        this.plugins.forEach(plugin => {
+          list.push(plugin.name);
+        });
+        this.pluginList = list.join('\n');
+      }
     },
+    savePluginList() {
+      let list = this.pluginList.split('\n');
+      let plugins = [];
+      list.forEach(plugin => {
+        plugins.push({ name: plugin });
+      });
+      this.isEditMode = false;
+
+      this.$emit('updatedList', plugins);
+    }
   }
 }
 </script>
 <style scoped>
-
 .row__plugin-list-tile {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+}
+
+.input__plugin-list-tile {
+  height: 100px;
+  width: 100%;
+  max-width: 700px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--bg2);
+
+}
+
+.btn__plugin-list-tile {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--bg2);
+  color: var(--currAccent);
+}
+
+.btn__plugin-list-tile:hover {
+  background-color: var(--bg2);
+  color: var(--currAccent);
 }
 
 .left__plugin-list-tile {

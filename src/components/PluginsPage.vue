@@ -7,9 +7,9 @@
     <input type="file" id="generatorFile" ref="generatorFile" style="display: none"/>
     <input type="file" id="effectsFile" ref="effectsFile" style="display: none"/>
     <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue"
-                    @download="downloadGenerators" @upload="uploadGenerators"/>
+                    @download="downloadGenerators" @upload="uploadGenerators" @updatedList="updateGenerators"/>
     <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue"
-                    @download="downloadEffects" @upload="uploadEffects"/>
+                    @download="downloadEffects" @upload="uploadEffects" @updatedList="updateEffects"/>
     <div class="container__recent-rows" v-if="pluginCombo">
       <h3 class="header__adjust">Adjust</h3>
       <table class="table__recent-rows">
@@ -60,7 +60,7 @@
         </div>
         <div class="button__reroll" @click="reroll">
           <v-icon icon="mdi-dice-3-outline" class="icon__reroll"/>
-          Reroll
+          Randomize
         </div>
       </div>
     </div>
@@ -244,6 +244,14 @@ export default {
         let file = e.target.files[0];
         this.$store.dispatch("loadEffectsFromFile", file);
       });
+    },
+    updateGenerators(plugins) {
+      console.log("updating generators", plugins);
+      this.$store.commit("setGenerators", plugins);
+    },
+    updateEffects(plugins) {
+      console.log("updating effects", plugins);
+      this.$store.commit("setEffects", plugins);
     }
   }
 }
@@ -413,6 +421,11 @@ export default {
 .page__plugins {
   width: 800px;
   height: 100%;
+  padding: 20px;
+  background-color: var(--bg1);
+  z-index: 1;
+  border-radius: 8px;
+  border: 1px solid var(--currAccent);
 }
 
 .container__dice {
@@ -451,6 +464,8 @@ export default {
 }
 
 .container__recent-rows {
+  padding-left: 10px;
+  padding-right: 10px;
   width: 100%;
 }
 

@@ -85,6 +85,7 @@ const store = createStore({
             };
         },
         async loadGeneratorsFromCSV({commit}, csv) {
+            console.log("Loading generators from CSV");
             const generators = csv.split("\n").map(line => {
                 const [name, weight] = line.split(",");
 
@@ -101,6 +102,7 @@ const store = createStore({
                 };
             });
             const filteredGenerators = generators.filter(node => node.name);
+            console.log("Filtered generators:", filteredGenerators);
 
             commit("setGenerators", filteredGenerators);
         },
@@ -131,6 +133,7 @@ const store = createStore({
             });
         },
         async loadEffectsFromCSV({commit}, csv) {
+            console.log("Loading effects from CSV");
             const effects = csv.split("\n").map(line => {
                 const [name, weight] = line.split(",");
 
@@ -147,6 +150,7 @@ const store = createStore({
                 };
             });
             const filteredEffects = effects.filter(node => node.name);
+            console.log("Filtered effects:", filteredEffects);
 
             commit("setEffects", filteredEffects);
         },
