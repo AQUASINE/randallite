@@ -16,7 +16,7 @@
       </tr>
       </thead>
       <tbody>
-      <PluginTableRow v-for="plugin in plugins" :value="getProbability(plugin)" :name="plugin.name" @update="update"/>
+      <PluginTableRow v-for="plugin in plugins" :value="getProbability(plugin)" :name="plugin" @update="update"/>
       </tbody>
     </table>
   </div>
@@ -30,11 +30,12 @@ export default {
   components: {PluginTableRow},
   props: {
     plugins: {},
+    weights: {},
     updatePluginValue: {},
   },
   methods: {
     getProbability(plugin) {
-      return plugin.weight;
+      return this.weights[plugin] || 0;
     },
     update(val, plugin) {
       this.updatePluginValue(val, plugin);

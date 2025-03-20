@@ -31,7 +31,7 @@
         </div>
       </div>
       <PluginTable :plugins="plugins" :update-plugin-value="updatePluginValue"
-        :class="{ 'pluginsCollapsed': !isExpanded }" />
+        :class="{ 'pluginsCollapsed': !isExpanded }" :weights="weights"/>
     </div>
   </div>
 </template>
@@ -47,6 +47,10 @@ export default {
     plugins: {
       type: Array,
       default: () => []
+    },
+    weights: {
+      type: Object,
+      default: () => {}
     },
     name: {
       type: String,

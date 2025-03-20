@@ -4,6 +4,8 @@ const store = createStore({
     state: {
         generators: [],
         effects: [],
+        generatorWeights: {},
+        effectWeights: {},
         numGenerators: 0,
         numEffects: 0,
         maxPoints: 100,
@@ -19,6 +21,12 @@ const store = createStore({
         setGenerators(state, generators) {
             state.generators = generators;
         },
+        setGeneratorWeights(state, weights) {
+            state.generatorWeights = weights;
+        },
+        setEffectWeights(state, weights) {
+            state.effectWeights = weights;
+        },
         setEffects(state, effects) {
             state.effects = effects;
         },
@@ -26,15 +34,13 @@ const store = createStore({
             // find the generator with the given plugin name and update its weight
             const plugin = payload.name;
             const weight = payload.weight;
-            const generator = state.generators.find(generator => generator.name === plugin);
-            generator.weight = weight;
+            state.generatorWeights[plugin] = weight;
         },
         updateEffectWeight(state, payload) {
             // find the effect with the given plugin name and update its weight
             const plugin = payload.name;
             const weight = payload.weight;
-            const effect = state.effects.find(effect => effect.name === plugin);
-            effect.weight = weight;
+            state.effectWeights[plugin] = weight;
         },
         setNumGenerators(state, numGenerators) {
             state.numGenerators = numGenerators;
@@ -86,25 +92,22 @@ const store = createStore({
         },
         async loadGeneratorsFromCSV({commit}, csv) {
             console.log("Loading generators from CSV");
+            const lines = csv.split("\n");
             const generators = csv.split("\n").map(line => {
                 const [name, weight] = line.split(",");
+                return name.trim();
+            }).filter(node => node);
 
-                // if weight is not provided, check if it was in the previous list
-                // and retain its weight
-                const previousGenerator = this.state.generators.find(generator => generator.name === name.trim());
-                if (!weight && previousGenerator) {
-                    return previousGenerator;
-                }
-
-                return {
-                    name: name.trim(),
-                    weight: weight ? parseFloat(weight) : 0.5
-                };
+            const weights = {};
+            lines.forEach(line => {
+                const [name, weight] = line.split(",");
+                weights[name.trim()] = weight ? parseFloat(weight) : 0.5;
             });
-            const filteredGenerators = generators.filter(node => node.name);
-            console.log("Filtered generators:", filteredGenerators);
 
-            commit("setGenerators", filteredGenerators);
+            console.log("Filtered generators:", generators);
+
+            commit("setGenerators", generators);
+            commit("setGeneratorWeights", weights);
         },
         async loadGeneratorsFromFile({commit}, file) {
             // user uploads a csv file with generator data. it will be of the form
@@ -136,26 +139,21 @@ const store = createStore({
             console.log("Loading effects from CSV");
             const effects = csv.split("\n").map(line => {
                 const [name, weight] = line.split(",");
+                return name.trim();
+            }).filter(node => node);
 
-                // if weight is not provided, check if it was in the previous list
-                // and retain its weight
-                const previousEffect = this.state.effects.find(effect => effect.name === name.trim());
-                if (!weight && previousEffect) {
-                    return previousEffect;
-                }
-
-                return {
-                    name: name.trim(),
-                    weight: weight ? parseFloat(weight) : 0.5
-                };
+            const weights = {};
+            csv.split("\n").forEach(line => {
+                const [name, weight] = line.split(",");
+                weights[name.trim()] = weight ? parseFloat(weight) : 0.5;
             });
-            const filteredEffects = effects.filter(node => node.name);
-            console.log("Filtered effects:", filteredEffects);
+            console.log("Filtered effects:", effects);
 
-            commit("setEffects", filteredEffects);
+            commit("setEffects", effects);
+            commit("setEffectWeights", weights);
         },
         async downloadGenerators({state}) {
-            const csvContent = state.generators.map(generator => `${generator.name}, ${generator.weight}`).join("\n");
+            const csvContent = state.generators.map(generator => `${generator}, ${state.generatorWeights[generator]}`).join("\n");
             const blob = new Blob([csvContent], {type: "text/csv"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -166,7 +164,7 @@ const store = createStore({
             a.click();
         },
         async downloadEffects({state}) {
-            const csvContent = state.effects.map(effect => `${effect.name}, ${effect.weight}`).join("\n");
+            const csvContent = state.effects.map(effect => `${effect}, ${state.effectWeights[effect]}`).join("\n");
             const blob = new Blob([csvContent], {type: "text/csv"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -177,7 +175,9 @@ const store = createStore({
         },
         async saveToLocalStorage({state}) {
             localStorage.setItem("generators", JSON.stringify(state.generators));
+            localStorage.setItem("generatorWeights", JSON.stringify(state.generatorWeights));
             localStorage.setItem("effects", JSON.stringify(state.effects));
+            localStorage.setItem("effectWeights", JSON.stringify(state.effectWeights));
             localStorage.setItem("numGenerators", state.numGenerators);
             localStorage.setItem("maxPoints", state.maxPoints);
             localStorage.setItem("numEffects", state.numEffects);
@@ -185,6 +185,8 @@ const store = createStore({
         async loadFromLocalStorage({commit}) {
             const generators = JSON.parse(localStorage.getItem("generators")) || [];
             const effects = JSON.parse(localStorage.getItem("effects")) || [];
+            const generatorWeights = JSON.parse(localStorage.getItem("generatorWeights")) || {};
+            const effectWeights = JSON.parse(localStorage.getItem("effectWeights")) || {};
             const numGenerators = parseInt(localStorage.getItem("numGenerators")) || 0;
             const numEffects = parseInt(localStorage.getItem("numEffects")) || 0;
             const maxPoints = parseInt(localStorage.getItem("maxPoints")) || 100;
@@ -192,6 +194,8 @@ const store = createStore({
             commit("setEffects", effects);
             commit("setNumGenerators", numGenerators);
             commit("setNumEffects", numEffects);
+            commit("setGeneratorWeights", generatorWeights);
+            commit("setEffectWeights", effectWeights);
             commit("setMaxPoints", maxPoints);
         },
         async updateMaxPoints({commit}, maxPoints) {
@@ -205,6 +209,6 @@ setInterval(() => {
     store.dispatch("saveToLocalStorage").then(() => {
         console.log("Saved to local storage");
     });
-}, 1000);
+}, 10000);
 
 export default store;

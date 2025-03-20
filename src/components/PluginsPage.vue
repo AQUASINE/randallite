@@ -6,9 +6,9 @@
     </div>
     <input type="file" id="generatorFile" ref="generatorFile" style="display: none"/>
     <input type="file" id="effectsFile" ref="effectsFile" style="display: none"/>
-    <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue"
+    <PluginListTile :plugins="generators" name="Generators" :update-plugin-value="updateGeneratorPluginValue" :weights="generatorWeights"
                     @download="downloadGenerators" @upload="uploadGenerators" @updatedList="updateGenerators"/>
-    <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue"
+    <PluginListTile :plugins="effects" name="Effects" :update-plugin-value="updateEffectsPluginValue" :weights="effectWeights"
                     @download="downloadEffects" @upload="uploadEffects" @updatedList="updateEffects"/>
     <div class="container__recent-rows" v-if="pluginCombo">
       <h3 class="header__adjust">Adjust</h3>
@@ -21,9 +21,9 @@
         </tr>
         </thead>
         <tbody>
-        <PluginTableRow v-if="selectedGenerator && selectedGenerator.name" :name="selectedGenerator.name" :key="selectedGenerator.name"
-                        :value="selectedGenerator.value" @update="updateGeneratorPluginValue"/>
-        <PluginTableRow v-for="effect in selectedEffects" :name="effect.name" :value="effect.value" :key="effect.name" @update="updateEffectsPluginValue"/>
+        <PluginTableRow v-if="selectedGenerator" :name="selectedGenerator" :key="selectedGenerator"
+                        :value="generatorWeights[selectedGenerator]" @update="updateGeneratorPluginValue"/>
+        <PluginTableRow v-for="effect in selectedEffects" :name="effect" :value="effectWeights[effect]" :key="effect" @update="updateEffectsPluginValue"/>
         </tbody>
       </table>
     </div>
@@ -110,7 +110,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['generators', 'effects', 'numGenerators', 'numEffects']),
+    ...mapState(['generators', 'effects', 'numGenerators', 'numEffects', 'generatorWeights', 'effectWeights']),
   },
   methods: {
     clearCombo() {
@@ -162,7 +162,9 @@ export default {
     },
     rollPluginCombo() {
       let generators = JSON.parse(JSON.stringify(this.generators));
+      let generatorWeights = JSON.parse(JSON.stringify(this.generatorWeights));
       let effects = JSON.parse(JSON.stringify(this.effects));
+      let effectWeights = JSON.parse(JSON.stringify(this.effectWeights));
 
       this.selectedGenerator = ""
       this.selectedEffects = []
@@ -172,9 +174,9 @@ export default {
         // let randIndex = Math.floor(Math.random() * generators.length);
         // use probabilities instead. this is a weighted random with each weight being from 0 to 1
         pluginCombo += "<span style='color: var(--currAccent)'>"
-        let randIndex = this.weightedProbability(generators);
+        let randIndex = this.weightedProbability(generators, generatorWeights);
         this.selectedGenerator = generators[randIndex];
-        pluginCombo += generators[randIndex].name;
+        pluginCombo += generators[randIndex];
         pluginCombo += "</span>"
         generators.splice(randIndex, 1);
         if (i < this.numGenerators - 1 || this.numEffects > 0) {
@@ -186,11 +188,9 @@ export default {
         if (!effects || effects.length === 0) {
           break;
         }
-        let randIndex = this.weightedProbability(effects);
-        if (!this.selectedEffects.find(effect => effect.name === effects[randIndex].name)) {
-          this.selectedEffects.push(effects[randIndex]);
-        }
-        pluginCombo += effects[randIndex].name;
+        let randIndex = this.weightedProbability(effects, effectWeights);
+        this.selectedEffects.push(effects[randIndex]);
+        pluginCombo += effects[randIndex];
         if (i < this.numEffects - 1) {
           pluginCombo += " + ";
         }
@@ -198,14 +198,23 @@ export default {
 
       this.pluginCombo = pluginCombo;
     },
-    weightedProbability(items) {
+    weightedProbability(items, weights) {
       // items is an array of strings that are the keys of the probabilityMap
       // return the index of the item that was chosen
 
       let sum = 0;
+      console.log(items);
       for (let i = 0; i < items.length; i++) {
-        sum += items[i].weight;
+        if (weights[items[i]] === undefined) {
+          console.log("undefined weight", items[i]);
+          console.log("weights", weights);
+          console.log("items", items);
+          console.log("item", items[i]);
+        }
+        sum += weights[items[i]];
       }
+
+      console.log("sum", sum);
 
       if (sum === 0) {
         return Math.floor(Math.random() * items.length);
@@ -214,10 +223,16 @@ export default {
       let rand = Math.random() * sum;
 
       let runningSum = 0;
+      let count = 0;
       for (let i = 0; i < items.length; i++) {
-        runningSum += items[i].weight;
+        count += 1;
+        runningSum += weights[items[i]];
         if (rand < runningSum) {
           return i;
+        }
+        if (count > 50000) {
+          console.log("count exceeded 100");
+          break;
         }
       }
 
@@ -426,6 +441,7 @@ export default {
   z-index: 1;
   border-radius: 8px;
   border: 1px solid var(--currAccent);
+  margin-bottom: 40px;
 }
 
 .container__dice {
