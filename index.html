@@ -1,15 +1,23 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <title>Randallite</title>
-    <script type="module" crossorigin src="/assets/index--fkA_I8W.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-cYYi6mw5.css">
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Randallite</title>
+  <script type="module" crossorigin src="/assets/index-l4bo_txw.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-nJV0MDFk.css">
+</head>
+
+<body>
+  <div id="app"></div>
+  <script> setTimeout(() => { let favicon_video_image_counter = 0; let favicon_video_icon_tag = document.querySelector("link[rel='icon']"); let favicon_video_images = ["https://favicongenerator.s3.amazonaws.com/cd17b08309d6a.png", "https://favicongenerator.s3.amazonaws.com/bf8eccb6a4524.png", "https://favicongenerator.s3.amazonaws.com/f4a68b0c7f9cb.png", "https://favicongenerator.s3.amazonaws.com/37b010f930e5d.png", "https://favicongenerator.s3.amazonaws.com/d692182b09c4b.png"]; async function favicon_video_to_data_url(url, callback) { let xhr = new XMLHttpRequest(); xhr.onload = function () { let reader = new FileReader(); reader.onloadend = function () { callback(reader.result); }; reader.readAsDataURL(xhr.response); }; xhr.open("GET", url); xhr.responseType = "blob"; xhr.send(); } let favicon_video_loaded_images = []; favicon_video_images.map((url, idx) => { favicon_video_to_data_url(url, function (dataUrl) { favicon_video_loaded_images[idx] = dataUrl; }); }); setInterval(function () { if (favicon_video_loaded_images[favicon_video_image_counter]) { favicon_video_icon_tag.href = favicon_video_loaded_images[favicon_video_image_counter].replace("application/octet-stream", "image/png"); } if (favicon_video_image_counter == favicon_video_loaded_images.length - 1) favicon_video_image_counter = 0; else favicon_video_image_counter++; }, 100); }, 2000); </script>
+</body>
+
 </html>
